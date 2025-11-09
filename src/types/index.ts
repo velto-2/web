@@ -30,7 +30,8 @@ export interface User {
   createdAt: string;
   updatedAt: string;
   organization?: Organization;
-  roles?: Role[];
+  roles?: Role[] | string[]; // Can be array of role objects or role slugs
+  permissions?: string[]; // Array of permission strings like "USER.READ"
 }
 
 export interface LoginRequest {
@@ -168,8 +169,8 @@ export enum UserStatus {
 }
 
 export enum OrganizationType {
-  EMPLOYER = "EMPLOYER",
-  AGENCY = "AGENCY",
+  INTERNAL = "INTERNAL",
+  CLIENT = "CLIENT",
 }
 
 export enum OrganizationStatus {

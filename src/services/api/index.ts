@@ -6,3 +6,8 @@ export * from './contracts';
 export * from './workers';
 export * from './tests';
 export * from './testRuns';
+export * from './importedCalls';
+export * from './analytics';
+export * from './testSchedules';
+export * from './users';
+export * from './rbac';

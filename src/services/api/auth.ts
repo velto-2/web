@@ -12,7 +12,9 @@ export interface RegisterRequest {
   password: string;
   phone?: string;
   organizationName: string;
-  organizationType: 'EMPLOYER' | 'AGENCY';
+  organizationType: 'CLIENT';
+  registrationNumber: string;
+  taxNumber?: string;
   organizationAddress?: string;
   organizationPhone?: string;
   organizationWebsite?: string;

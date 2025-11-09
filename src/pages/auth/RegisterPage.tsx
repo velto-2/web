@@ -1,12 +1,11 @@
 import React, { useState } from 'react';
-import { Form, Input, Button, Typography, Alert, Select, Row, Col, Steps } from 'antd';
+import { Form, Input, Button, Typography, Alert, Row, Col, Steps } from 'antd';
 import { UserOutlined, LockOutlined, MailOutlined, PhoneOutlined, BankOutlined } from '@ant-design/icons';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { RegisterRequest, OrganizationType } from '../../types';
 
 const { Title, Text } = Typography;
-const { Option } = Select;
 
 export const RegisterPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
@@ -137,12 +136,10 @@ export const RegisterPage: React.FC = () => {
         <>
           <Form.Item
             name="organizationType"
-            rules={[{ required: true, message: 'Please select your organization type!' }]}
+            initialValue={OrganizationType.CLIENT}
+            hidden
           >
-            <Select placeholder="Organization Type" size="large">
-              <Option value={OrganizationType.EMPLOYER}>Employer</Option>
-              <Option value={OrganizationType.AGENCY}>Agency</Option>
-            </Select>
+            <Input type="hidden" />
           </Form.Item>
 
           <Form.Item
@@ -182,7 +179,7 @@ export const RegisterPage: React.FC = () => {
         Create Account
       </Title>
       <Text type="secondary" style={{ display: 'block', textAlign: 'center', marginBottom: 32 }}>
-        Join Ajeer Pay to streamline your workforce management
+        Join Velto to test and improve your voice agents
       </Text>
 
       <Steps current={currentStep} size="small" style={{ marginBottom: 32 }}>
