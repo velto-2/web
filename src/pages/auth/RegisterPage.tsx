@@ -3,7 +3,8 @@ import { Form, Input, Button, Typography, Alert, Row, Col, Steps } from 'antd';
 import { UserOutlined, LockOutlined, MailOutlined, PhoneOutlined, BankOutlined } from '@ant-design/icons';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-import { RegisterRequest, OrganizationType } from '../../types';
+import type { RegisterRequest } from '../../types';
+import { OrganizationType } from '../../types';
 
 const { Title, Text } = Typography;
 

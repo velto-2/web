@@ -1,14 +1,17 @@
 import React, { useState } from "react";
-import { Card, Upload, Button, Form, Input, message, Space } from "antd";
+import { Card, Upload, Button, Form, message, Space } from "antd";
 import { InboxOutlined, UploadOutlined } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import { useUploadCall } from "../../hooks/useImportedCalls";
+import { AgentSelector } from "../../components/agents/AgentSelector";
+import { useAuth } from "../../contexts/AuthContext";
 import type { UploadFile } from "antd";
 
 const { Dragger } = Upload;
 
 export const UploadCallPage: React.FC = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [form] = Form.useForm();
   const [fileList, setFileList] = useState<UploadFile[]>([]);
   const uploadCall = useUploadCall();
@@ -90,20 +93,11 @@ export const UploadCallPage: React.FC = () => {
             </Dragger>
           </Form.Item>
 
-          <Form.Item label="Agent ID" name="agentId">
-            <Input placeholder="Optional" />
-          </Form.Item>
-
-          <Form.Item label="Agent Name" name="agentName">
-            <Input placeholder="Optional" />
-          </Form.Item>
-
-          <Form.Item label="Campaign ID" name="campaignId">
-            <Input placeholder="Optional" />
-          </Form.Item>
-
-          <Form.Item label="Region" name="region">
-            <Input placeholder="Optional" />
+          <Form.Item label="Agent" name="agentId">
+            <AgentSelector
+              customerId={user?.organizationId}
+              placeholder="Select an agent (optional)"
+            />
           </Form.Item>
 
           <Form.Item>

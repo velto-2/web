@@ -161,42 +161,55 @@ export interface Permission {
 }
 
 // Enums
-export enum UserStatus {
-  ACTIVE = "ACTIVE",
-  INACTIVE = "INACTIVE",
-  PENDING = "PENDING",
-  SUSPENDED = "SUSPENDED",
-}
+export const UserStatus = {
+  ACTIVE: "ACTIVE",
+  INACTIVE: "INACTIVE",
+  PENDING: "PENDING",
+  SUSPENDED: "SUSPENDED",
+} as const;
 
-export enum OrganizationType {
-  INTERNAL = "INTERNAL",
-  CLIENT = "CLIENT",
-}
+export type UserStatus = (typeof UserStatus)[keyof typeof UserStatus];
 
-export enum OrganizationStatus {
-  PENDING = "PENDING",
-  ACTIVE = "ACTIVE",
-  SUSPENDED = "SUSPENDED",
-  REJECTED = "REJECTED",
-}
+export const OrganizationType = {
+  INTERNAL: "INTERNAL",
+  CLIENT: "CLIENT",
+} as const;
 
-export enum JobType {
-  CONSTRUCTION = "CONSTRUCTION",
-  HOSPITALITY = "HOSPITALITY",
-  FACILITY_MANAGEMENT = "FACILITY_MANAGEMENT",
-  EVENTS = "EVENTS",
-  RETAIL = "RETAIL",
-  OTHER = "OTHER",
-}
+export type OrganizationType =
+  (typeof OrganizationType)[keyof typeof OrganizationType];
 
-export enum JobRequestStatus {
-  DRAFT = "DRAFT",
-  OPEN = "OPEN",
-  IN_PROGRESS = "IN_PROGRESS",
-  CLOSED = "CLOSED",
-  EXPIRED = "EXPIRED",
-  CANCELLED = "CANCELLED",
-}
+export const OrganizationStatus = {
+  PENDING: "PENDING",
+  ACTIVE: "ACTIVE",
+  SUSPENDED: "SUSPENDED",
+  REJECTED: "REJECTED",
+} as const;
+
+export type OrganizationStatus =
+  (typeof OrganizationStatus)[keyof typeof OrganizationStatus];
+
+export const JobType = {
+  CONSTRUCTION: "CONSTRUCTION",
+  HOSPITALITY: "HOSPITALITY",
+  FACILITY_MANAGEMENT: "FACILITY_MANAGEMENT",
+  EVENTS: "EVENTS",
+  RETAIL: "RETAIL",
+  OTHER: "OTHER",
+} as const;
+
+export type JobType = (typeof JobType)[keyof typeof JobType];
+
+export const JobRequestStatus = {
+  DRAFT: "DRAFT",
+  OPEN: "OPEN",
+  IN_PROGRESS: "IN_PROGRESS",
+  CLOSED: "CLOSED",
+  EXPIRED: "EXPIRED",
+  CANCELLED: "CANCELLED",
+} as const;
+
+export type JobRequestStatus =
+  (typeof JobRequestStatus)[keyof typeof JobRequestStatus];
 
 // Form Types
 export interface CreateJobRequest {
@@ -269,6 +282,8 @@ export interface Language {
 export interface TestConfig {
   _id: string;
   name: string;
+  customerId: string;
+  agentId: string;
   agentEndpoint: string;
   agentType: string;
   language: Language;
@@ -281,6 +296,8 @@ export interface TestConfig {
 
 export interface CreateTestConfigRequest {
   name: string;
+  customerId: string;
+  agentId: string;
   agentEndpoint: string;
   agentType?: string;
   language: Language;
@@ -318,6 +335,38 @@ export interface Evaluation {
   taskCompleted?: number; // 0-100
   issues?: string[];
   metrics?: Record<string, any>;
+  latency?: {
+    score?: number;
+    averageResponseTime?: number;
+    medianResponseTime?: number;
+    p95ResponseTime?: number;
+  };
+  pronunciation?: {
+    score?: number;
+    wordsPerMinute?: number;
+    overallClarityScore?: number;
+  };
+  jobsToBeDone?: {
+    score?: number;
+    wasTaskCompleted?: boolean;
+    attemptedJobs?: string[];
+    completedJobs?: string[];
+    missingSteps?: string[];
+    reason?: string;
+    analysisMethod?: string;
+  };
+  criticalIssues?: Array<{
+    category?: string;
+    description?: string;
+    severity?: string;
+    affectedMetric?: string;
+  }>;
+  recommendations?: Array<{
+    title?: string;
+    description?: string;
+    priority?: string;
+    relatedMetrics?: string[];
+  }>;
 }
 
 export interface TestRun {

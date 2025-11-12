@@ -1,5 +1,5 @@
 import { apiClient } from './client';
-import { TestRun, CreateTestRunRequest } from '../../types';
+import type { TestRun, CreateTestRunRequest } from '../../types';
 
 interface BaseResponse<T> {
   success: boolean;

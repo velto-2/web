@@ -7,6 +7,7 @@ export const useImportedCalls = (params?: {
   page?: number;
   limit?: number;
   status?: string;
+  agentId?: string;
   dateFrom?: string;
   dateTo?: string;
   campaignId?: string;

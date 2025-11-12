@@ -1,19 +1,26 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { testsApi } from '../services/api/tests';
-import { testRunsApi } from '../services/api/testRuns';
-import { TestConfig, CreateTestConfigRequest, UpdateTestConfigRequest, TestRun, CreateTestRunRequest } from '../types';
-import { message } from 'antd';
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { testsApi } from "../services/api/tests";
+import { testRunsApi } from "../services/api/testRuns";
+import type {
+  CreateTestConfigRequest,
+  UpdateTestConfigRequest,
+  TestRun,
+  CreateTestRunRequest,
+} from "../types";
+import { message } from "antd";
 
 /**
  * Hook to fetch all test configurations
  */
 export const useTests = (params?: {
+  customerId?: string;
+  agentId?: string;
   language?: string;
   isActive?: boolean;
   search?: string;
 }) => {
   return useQuery({
-    queryKey: ['tests', params],
+    queryKey: ["tests", params],
     queryFn: () => testsApi.getAll(params),
   });
 };
@@ -23,7 +30,7 @@ export const useTests = (params?: {
  */
 export const useTest = (id: string | null) => {
   return useQuery({
-    queryKey: ['test', id],
+    queryKey: ["test", id],
     queryFn: () => testsApi.getById(id!),
     enabled: !!id,
   });
@@ -38,11 +45,13 @@ export const useCreateTest = () => {
   return useMutation({
     mutationFn: (data: CreateTestConfigRequest) => testsApi.create(data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['tests'] });
-      message.success('Test configuration created successfully');
+      queryClient.invalidateQueries({ queryKey: ["tests"] });
+      message.success("Test configuration created successfully");
     },
     onError: (error: any) => {
-      message.error(error.response?.data?.message || 'Failed to create test configuration');
+      message.error(
+        error.response?.data?.message || "Failed to create test configuration"
+      );
     },
   });
 };
@@ -57,12 +66,14 @@ export const useUpdateTest = () => {
     mutationFn: ({ id, data }: { id: string; data: UpdateTestConfigRequest }) =>
       testsApi.update(id, data),
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['tests'] });
-      queryClient.invalidateQueries({ queryKey: ['test', variables.id] });
-      message.success('Test configuration updated successfully');
+      queryClient.invalidateQueries({ queryKey: ["tests"] });
+      queryClient.invalidateQueries({ queryKey: ["test", variables.id] });
+      message.success("Test configuration updated successfully");
     },
     onError: (error: any) => {
-      message.error(error.response?.data?.message || 'Failed to update test configuration');
+      message.error(
+        error.response?.data?.message || "Failed to update test configuration"
+      );
     },
   });
 };
@@ -76,11 +87,13 @@ export const useDeleteTest = () => {
   return useMutation({
     mutationFn: (id: string) => testsApi.delete(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['tests'] });
-      message.success('Test configuration deleted successfully');
+      queryClient.invalidateQueries({ queryKey: ["tests"] });
+      message.success("Test configuration deleted successfully");
     },
     onError: (error: any) => {
-      message.error(error.response?.data?.message || 'Failed to delete test configuration');
+      message.error(
+        error.response?.data?.message || "Failed to delete test configuration"
+      );
     },
   });
 };
@@ -93,7 +106,7 @@ export const useTestRuns = (params?: {
   status?: string;
 }) => {
   return useQuery({
-    queryKey: ['test-runs', params],
+    queryKey: ["test-runs", params],
     queryFn: () => testRunsApi.getAll(params),
   });
 };
@@ -101,15 +114,18 @@ export const useTestRuns = (params?: {
 /**
  * Hook to fetch a single test run with polling support
  */
-export const useTestRun = (id: string | null, options?: { enabled?: boolean; refetchInterval?: number }) => {
+export const useTestRun = (
+  id: string | null,
+  options?: { enabled?: boolean; refetchInterval?: number }
+) => {
   return useQuery({
-    queryKey: ['test-run', id],
+    queryKey: ["test-run", id],
     queryFn: () => testRunsApi.getById(id!),
-    enabled: !!id && (options?.enabled !== false),
+    enabled: !!id && options?.enabled !== false,
     refetchInterval: (query) => {
       // Only poll if test is still running or pending
       const data = query.state.data as TestRun | undefined;
-      if (data?.status === 'running' || data?.status === 'pending') {
+      if (data?.status === "running" || data?.status === "pending") {
         return options?.refetchInterval || 3000; // Default 3 seconds
       }
       return false; // Stop polling when completed or failed
@@ -126,13 +142,14 @@ export const useCreateTestRun = () => {
   return useMutation({
     mutationFn: (data: CreateTestRunRequest) => testRunsApi.create(data),
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['test-runs'] });
-      queryClient.setQueryData(['test-run', data._id], data);
-      message.success('Test run started successfully');
+      queryClient.invalidateQueries({ queryKey: ["test-runs"] });
+      queryClient.setQueryData(["test-run", data._id], data);
+      message.success("Test run started successfully");
     },
     onError: (error: any) => {
-      message.error(error.response?.data?.message || 'Failed to start test run');
+      message.error(
+        error.response?.data?.message || "Failed to start test run"
+      );
     },
   });
 };
-

@@ -1,5 +1,5 @@
 import { apiClient } from "./client";
-import {
+import type {
   TestConfig,
   CreateTestConfigRequest,
   UpdateTestConfigRequest,
@@ -16,6 +16,8 @@ export const testsApi = {
    * Get all test configurations
    */
   getAll: async (params?: {
+    customerId?: string;
+    agentId?: string;
     language?: string;
     isActive?: boolean;
     search?: string;

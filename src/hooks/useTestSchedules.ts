@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { testSchedulesApi, CreateScheduleRequest, UpdateScheduleRequest } from '../services/api/testSchedules';
+import { testSchedulesApi } from '../services/api/testSchedules';
+import type { CreateScheduleRequest, UpdateScheduleRequest } from '../services/api/testSchedules';
 import { message } from 'antd';
 
 export const useTestSchedules = () => {

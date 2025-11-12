@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   Card,
   Table,
@@ -7,7 +7,6 @@ import {
   Tag,
   Popconfirm,
   Typography,
-  Switch,
   Tooltip,
 } from 'antd';
 import {
@@ -35,8 +34,9 @@ export const TestSchedulesListPage: React.FC = () => {
   const toggleSchedule = useToggleSchedule();
   const deleteSchedule = useDeleteSchedule();
 
+  const testsArray = Array.isArray(testsData) ? testsData : [];
   const getTestName = (testConfigId: string) => {
-    const test = testsData?.data?.find((t: any) => (t._id || t.id) === testConfigId);
+    const test = testsArray?.find((t: any) => (t._id || t.id) === testConfigId);
     return test?.name || 'Unknown Test';
   };
 
@@ -76,7 +76,7 @@ export const TestSchedulesListPage: React.FC = () => {
       title: 'Status',
       dataIndex: 'isActive',
       key: 'status',
-      render: (isActive: boolean, record: any) => (
+      render: (isActive: boolean) => (
         <Tag color={getStatusColor(isActive)}>
           {isActive ? 'Active' : 'Inactive'}
         </Tag>

@@ -21,10 +21,10 @@ import {
   BarChartOutlined,
   ClockCircleOutlined,
   SwapOutlined,
+  RobotOutlined,
 } from "@ant-design/icons";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
-import { OrganizationType } from "../types";
 
 const { Header, Sider, Content } = Layout;
 const { Text } = Typography;
@@ -101,6 +101,12 @@ export const AppLayout: React.FC = () => {
         icon: <SwapOutlined />,
         label: "Compare",
         onClick: () => navigate("/test-comparison"),
+      },
+      {
+        key: "/agents",
+        icon: <RobotOutlined />,
+        label: "Agents",
+        onClick: () => navigate("/agents"),
       },
     ];
 

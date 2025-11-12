@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
   Card,
   Table,
@@ -7,11 +7,17 @@ import {
   Space,
   Select,
   DatePicker,
+  message,
 } from "antd";
 import { useNavigate } from "react-router-dom";
 import { PlusOutlined, EyeOutlined } from "@ant-design/icons";
 import { useImportedCalls } from "../../hooks/useImportedCalls";
+import { BulkStatusBar } from "../../components/imported-calls/BulkStatusBar";
+import { BulkActions } from "../../components/imported-calls/BulkActions";
+import { ExportModal } from "../../components/imported-calls/ExportModal";
+import { importedCallsApi } from "../../services/api/importedCalls";
 import dayjs from "dayjs";
+import type { ColumnsType } from "antd/es/table";
 
 const { RangePicker } = DatePicker;
 
@@ -19,15 +25,33 @@ export const ImportedCallsListPage: React.FC = () => {
   const navigate = useNavigate();
   const [page, setPage] = useState(1);
   const [status, setStatus] = useState<string | undefined>();
-  const [dateRange, setDateRange] = useState<[dayjs.Dayjs, dayjs.Dayjs] | null>(null);
+  const [agentId, setAgentId] = useState<string | undefined>();
+  const [dateRange, setDateRange] = useState<[dayjs.Dayjs, dayjs.Dayjs] | null>(
+    null
+  );
+  const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
+  const [bulkStatus, setBulkStatus] = useState<any>(null);
+  const [exportModalVisible, setExportModalVisible] = useState(false);
 
   const { data, isLoading } = useImportedCalls({
     page,
     limit: 20,
     status,
+    agentId,
     dateFrom: dateRange?.[0]?.toISOString(),
     dateTo: dateRange?.[1]?.toISOString(),
   });
+
+  // Extract unique agent IDs from calls for filter dropdown
+  const agentIds = useMemo(() => {
+    const agents = new Set<string>();
+    data?.calls?.forEach((call: any) => {
+      if (call.metadata?.agentId) {
+        agents.add(call.metadata.agentId);
+      }
+    });
+    return Array.from(agents).sort();
+  }, [data?.calls]);
 
   const getStatusColor = (status: string) => {
     const colors: Record<string, string> = {
@@ -52,7 +76,42 @@ export const ImportedCallsListPage: React.FC = () => {
     return colors[grade || ""] || "default";
   };
 
-  const columns = [
+
+  useEffect(() => {
+    if (selectedRowKeys.length > 0) {
+      const loadBulkStatus = async () => {
+        try {
+          const status = await importedCallsApi.getBulkStatus(
+            selectedRowKeys as string[]
+          );
+          setBulkStatus(status);
+        } catch (error) {
+          console.error("Failed to load bulk status", error);
+        }
+      };
+      loadBulkStatus();
+      const interval = setInterval(loadBulkStatus, 5000);
+      return () => clearInterval(interval);
+    } else {
+      setBulkStatus(null);
+    }
+  }, [selectedRowKeys]);
+
+  const rowSelection = {
+    selectedRowKeys,
+    onChange: (keys: React.Key[]) => {
+      if (keys.length <= 100) {
+        setSelectedRowKeys(keys);
+      } else {
+        message.warning("Maximum 100 calls can be selected at once");
+      }
+    },
+    getCheckboxProps: () => ({
+      disabled: selectedRowKeys.length >= 100,
+    }),
+  };
+
+  const columns: ColumnsType<any> = [
     {
       title: "File Name",
       dataIndex: "fileName",
@@ -94,7 +153,8 @@ export const ImportedCallsListPage: React.FC = () => {
       title: "Uploaded",
       dataIndex: "createdAt",
       key: "createdAt",
-      render: (date: string) => (date ? dayjs(date).format("MMM D, YYYY") : "-"),
+      render: (date: string) =>
+        date ? dayjs(date).format("MMM D, YYYY") : "-",
     },
     {
       title: "Actions",
@@ -116,6 +176,9 @@ export const ImportedCallsListPage: React.FC = () => {
         title="Imported Calls"
         extra={
           <Space>
+            <Button onClick={() => navigate("/imported-calls/knowledge-base")}>
+              Knowledge Base
+            </Button>
             <Button onClick={() => navigate("/imported-calls/analytics")}>
               Analytics
             </Button>
@@ -130,7 +193,47 @@ export const ImportedCallsListPage: React.FC = () => {
         }
       >
         <Space direction="vertical" style={{ width: "100%", marginBottom: 16 }}>
+          {selectedRowKeys.length > 0 && (
+            <>
+              {bulkStatus && (
+                <BulkStatusBar
+                  total={bulkStatus.total}
+                  completed={bulkStatus.statusCounts?.completed || 0}
+                  processing={
+                    (bulkStatus.statusCounts?.processing || 0) +
+                    (bulkStatus.statusCounts?.transcribing || 0) +
+                    (bulkStatus.statusCounts?.evaluating || 0)
+                  }
+                  failed={bulkStatus.statusCounts?.failed || 0}
+                  pending={bulkStatus.statusCounts?.pending || 0}
+                />
+              )}
+              <Space>
+                <BulkActions
+                  selectedCount={selectedRowKeys.length}
+                  selectedIds={selectedRowKeys as string[]}
+                  onExport={() => setExportModalVisible(true)}
+                />
+                <Button onClick={() => setSelectedRowKeys([])}>
+                  Clear Selection
+                </Button>
+              </Space>
+            </>
+          )}
           <Space>
+            <Select
+              placeholder="Filter by agent"
+              allowClear
+              style={{ width: 200 }}
+              value={agentId}
+              onChange={setAgentId}
+            >
+              {agentIds.map((id: string) => (
+                <Select.Option key={id} value={id}>
+                  {id}
+                </Select.Option>
+              ))}
+            </Select>
             <Select
               placeholder="Filter by status"
               allowClear
@@ -153,6 +256,7 @@ export const ImportedCallsListPage: React.FC = () => {
           dataSource={data?.calls || []}
           loading={isLoading}
           rowKey="_id"
+          rowSelection={rowSelection}
           pagination={{
             current: page,
             pageSize: 20,
@@ -162,11 +266,19 @@ export const ImportedCallsListPage: React.FC = () => {
             showTotal: (total) => `Total ${total} calls`,
           }}
           locale={{
-            emptyText: data?.totalCalls === 0 ? "No calls found. Upload your first call to get started." : "No results",
+            emptyText:
+              data?.totalCalls === 0
+                ? "No calls found. Upload your first call to get started."
+                : "No results",
           }}
         />
       </Card>
+
+      <ExportModal
+        visible={exportModalVisible}
+        onClose={() => setExportModalVisible(false)}
+        callIds={selectedRowKeys as string[]}
+      />
     </div>
   );
 };
-

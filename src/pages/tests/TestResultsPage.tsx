@@ -15,7 +15,6 @@ import {
 } from "antd";
 import { ArrowLeftOutlined } from "@ant-design/icons";
 import { useTestRun, useTest } from "../../hooks/useTests";
-import { TestRun } from "../../types";
 import { LANGUAGES } from "../../constants/languages";
 import dayjs from "dayjs";
 
@@ -60,7 +59,6 @@ export const TestResultsPage: React.FC = () => {
   const {
     data: testRun,
     isLoading,
-    isFetching,
   } = useTestRun(id || null, {
     enabled: !!id,
     refetchInterval: 3000, // Poll every 3 seconds
@@ -235,7 +233,7 @@ export const TestResultsPage: React.FC = () => {
             ) : (
               <Timeline
                 mode="left"
-                items={testRun.transcripts.map((entry, index) => ({
+                items={testRun.transcripts.map((entry) => ({
                   color: entry.speaker === "user" ? "blue" : "green",
                   children: (
                     <div>

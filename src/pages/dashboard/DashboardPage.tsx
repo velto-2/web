@@ -1,5 +1,15 @@
-import React from 'react';
-import { Row, Col, Card, Statistic, Typography, Table, Tag, Space, Button } from 'antd';
+import React from "react";
+import {
+  Row,
+  Col,
+  Card,
+  Statistic,
+  Typography,
+  Table,
+  Tag,
+  Space,
+  Button,
+} from "antd";
 import {
   ExperimentOutlined,
   PlayCircleOutlined,
@@ -8,61 +18,89 @@ import {
   PlusOutlined,
   EyeOutlined,
   UploadOutlined,
-  ClockCircleOutlined,
-} from '@ant-design/icons';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../../contexts/AuthContext';
-import { useTests } from '../../hooks/useTests';
-import { useImportedCalls } from '../../hooks/useImportedCalls';
-import { useTestRuns } from '../../hooks/useTests';
-import { useQuery } from '@tanstack/react-query';
-import { analyticsApi } from '../../services/api/analytics';
+} from "@ant-design/icons";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../contexts/AuthContext";
+import { useTests } from "../../hooks/useTests";
+import { useImportedCalls } from "../../hooks/useImportedCalls";
+import { useTestRuns } from "../../hooks/useTests";
+import { useQuery } from "@tanstack/react-query";
+import { analyticsApi } from "../../services/api/analytics";
+import { importedCallsApi } from "../../services/api/importedCalls";
 
 const { Title, Text } = Typography;
 
 export const DashboardPage: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const { data: testsData, isLoading: testsLoading } = useTests();
-  const { data: callsData, isLoading: callsLoading } = useImportedCalls({ limit: 5 });
+  const { data: testsData, isLoading: testsLoading } = useTests({
+    customerId: user?.organizationId,
+  });
+  const { data: callsData, isLoading: callsLoading } = useImportedCalls({
+    limit: 5,
+  });
   const { data: testRunsData, isLoading: runsLoading } = useTestRuns();
   const { data: analyticsData, isLoading: analyticsLoading } = useQuery({
-    queryKey: ['testAnalytics'],
+    queryKey: ["testAnalytics", user?.organizationId],
     queryFn: () => analyticsApi.getTestAnalytics(),
+    enabled: !!user?.organizationId,
+  });
+  const { data: callAnalyticsData, isLoading: callAnalyticsLoading } = useQuery({
+    queryKey: ["callAnalytics"],
+    queryFn: () => importedCallsApi.getAnalytics(),
+    enabled: !!user?.organizationId,
   });
 
-  const loading = testsLoading || callsLoading || runsLoading || analyticsLoading;
+  const loading =
+    testsLoading || callsLoading || runsLoading || analyticsLoading || callAnalyticsLoading;
 
-  const totalTests = testsData?.data?.length || 0;
-  const activeTests = testsData?.data?.filter((t: any) => t.isActive)?.length || 0;
-  const totalTestRuns = analyticsData?.summary?.totalRuns || testRunsData?.length || 0;
-  const completedTestRuns = analyticsData?.summary?.completedRuns || testRunsData?.filter((r: any) => r.status === 'completed')?.length || 0;
-  const totalImportedCalls = callsData?.data?.length || 0;
-  const analyzedCalls = callsData?.data?.filter((c: any) => c.status === 'completed')?.length || 0;
+  const testsArray = Array.isArray(testsData) ? testsData : [];
+  const totalTests = testsArray.length;
+  const activeTests = testsArray.filter((t: any) => t.isActive).length;
+  
+  // Filter test runs to only include those from user's test configs
+  const userTestIds = new Set(testsArray.map((t: any) => t._id || t.id));
+  const filteredTestRuns = Array.isArray(testRunsData)
+    ? testRunsData.filter((r: any) => {
+        const testConfigId = r.testConfigId || r.testConfig?._id || r.testConfig?.id;
+        return testConfigId && userTestIds.has(testConfigId.toString());
+      })
+    : [];
+  
+  const totalTestRuns =
+    analyticsData?.summary?.totalRuns || filteredTestRuns.length || 0;
+  const completedTestRuns =
+    analyticsData?.summary?.completedRuns ||
+    filteredTestRuns.filter((r: any) => r.status === "completed")?.length ||
+    0;
+  const totalImportedCalls =
+    callsData?.totalCalls || callsData?.calls?.length || 0;
+  // Use analytics data for analyzed calls count (analytics only returns completed calls)
+  const analyzedCalls = callAnalyticsData?.summary?.totalCalls || 0;
   const successRate = analyticsData?.summary?.successRate || 0;
 
-  const recentTestRuns = testRunsData?.slice(0, 5) || [];
+  const recentTestRuns = filteredTestRuns.slice(0, 5);
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'completed':
-        return 'green';
-      case 'running':
-        return 'blue';
-      case 'pending':
-        return 'orange';
-      case 'failed':
-        return 'red';
+      case "completed":
+        return "green";
+      case "running":
+        return "blue";
+      case "pending":
+        return "orange";
+      case "failed":
+        return "red";
       default:
-        return 'default';
+        return "default";
     }
   };
 
   const recentTestsColumns = [
     {
-      title: 'Test Name',
-      dataIndex: 'name',
-      key: 'name',
+      title: "Test Name",
+      dataIndex: "name",
+      key: "name",
       render: (text: string, record: any) => (
         <Button
           type="link"
@@ -74,30 +112,30 @@ export const DashboardPage: React.FC = () => {
       ),
     },
     {
-      title: 'Language',
-      dataIndex: 'language',
-      key: 'language',
-      render: (lang: any) => lang?.name || lang?.code || 'N/A',
+      title: "Language",
+      dataIndex: "language",
+      key: "language",
+      render: (lang: any) => lang?.name || lang?.code || "N/A",
     },
     {
-      title: 'Status',
-      dataIndex: 'isActive',
-      key: 'status',
+      title: "Status",
+      dataIndex: "isActive",
+      key: "status",
       render: (isActive: boolean) => (
-        <Tag color={isActive ? 'green' : 'default'}>
-          {isActive ? 'Active' : 'Inactive'}
+        <Tag color={isActive ? "green" : "default"}>
+          {isActive ? "Active" : "Inactive"}
         </Tag>
       ),
     },
     {
-      title: 'Created',
-      dataIndex: 'createdAt',
-      key: 'createdAt',
+      title: "Created",
+      dataIndex: "createdAt",
+      key: "createdAt",
       render: (date: string) => new Date(date).toLocaleDateString(),
     },
     {
-      title: 'Action',
-      key: 'action',
+      title: "Action",
+      key: "action",
       render: (record: any) => (
         <Button
           type="primary"
@@ -116,7 +154,8 @@ export const DashboardPage: React.FC = () => {
       <div style={{ marginBottom: 24 }}>
         <Title level={2}>Dashboard</Title>
         <Text type="secondary">
-          Welcome back, {user?.firstName}! Here's an overview of your voice testing activities.
+          Welcome back, {user?.firstName}! Here's an overview of your voice
+          testing activities.
         </Text>
       </div>
 
@@ -149,7 +188,14 @@ export const DashboardPage: React.FC = () => {
               precision={1}
               suffix="%"
               prefix={<CheckCircleOutlined />}
-              valueStyle={{ color: successRate >= 80 ? '#3f8600' : successRate >= 60 ? '#faad14' : '#ff4d4f' }}
+              valueStyle={{
+                color:
+                  successRate >= 80
+                    ? "#3f8600"
+                    : successRate >= 60
+                    ? "#faad14"
+                    : "#ff4d4f",
+              }}
               loading={loading}
             />
           </Card>
@@ -172,7 +218,7 @@ export const DashboardPage: React.FC = () => {
             <Statistic
               title="Active Tests"
               value={activeTests}
-              valueStyle={{ color: '#3f8600' }}
+              valueStyle={{ color: "#3f8600" }}
               loading={loading}
             />
           </Card>
@@ -182,7 +228,7 @@ export const DashboardPage: React.FC = () => {
             <Statistic
               title="Completed Runs"
               value={completedTestRuns}
-              valueStyle={{ color: '#3f8600' }}
+              valueStyle={{ color: "#3f8600" }}
               loading={loading}
             />
           </Card>
@@ -192,7 +238,7 @@ export const DashboardPage: React.FC = () => {
             <Statistic
               title="Analyzed Calls"
               value={analyzedCalls}
-              valueStyle={{ color: '#3f8600' }}
+              valueStyle={{ color: "#3f8600" }}
               loading={loading}
             />
           </Card>
@@ -214,27 +260,31 @@ export const DashboardPage: React.FC = () => {
         <Col xs={24} lg={12}>
           <Card
             title={
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                }}
+              >
                 <span>Recent Tests</span>
                 <Space>
                   <Button
                     type="primary"
                     icon={<PlusOutlined />}
-                    onClick={() => navigate('/tests/new')}
+                    onClick={() => navigate("/tests/new")}
                   >
                     Create Test
                   </Button>
-                  <Button onClick={() => navigate('/tests')}>
-                    View All
-                  </Button>
+                  <Button onClick={() => navigate("/tests")}>View All</Button>
                 </Space>
               </div>
             }
           >
             <Table
               columns={recentTestsColumns}
-              dataSource={testsData?.data?.slice(0, 5) || []}
-              rowKey={(record) => record._id || record.id}
+              dataSource={testsArray.slice(0, 5)}
+              rowKey={(record) => record._id}
               pagination={false}
               size="small"
               loading={loading}
@@ -244,9 +294,15 @@ export const DashboardPage: React.FC = () => {
         <Col xs={24} lg={12}>
           <Card
             title={
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                }}
+              >
                 <span>Recent Test Runs</span>
-                <Button onClick={() => navigate('/analytics')}>
+                <Button onClick={() => navigate("/analytics")}>
                   View Analytics
                 </Button>
               </div>
@@ -255,17 +311,21 @@ export const DashboardPage: React.FC = () => {
             <Table
               columns={[
                 {
-                  title: 'Test',
-                  key: 'test',
+                  title: "Test",
+                  key: "test",
                   render: (record: any) => {
-                    const test = testsData?.data?.find((t: any) => (t._id || t.id) === (record.testConfigId || record.testConfig?._id));
-                    return test?.name || 'Unknown';
+                    const test = testsArray?.find(
+                      (t: any) =>
+                        (t._id || t.id) ===
+                        (record.testConfigId || record.testConfig?._id)
+                    );
+                    return test?.name || "Unknown";
                   },
                 },
                 {
-                  title: 'Status',
-                  dataIndex: 'status',
-                  key: 'status',
+                  title: "Status",
+                  dataIndex: "status",
+                  key: "status",
                   render: (status: string) => (
                     <Tag color={getStatusColor(status)}>
                       {status?.charAt(0).toUpperCase() + status?.slice(1)}
@@ -273,33 +333,40 @@ export const DashboardPage: React.FC = () => {
                   ),
                 },
                 {
-                  title: 'Score',
-                  key: 'score',
+                  title: "Score",
+                  key: "score",
                   render: (record: any) => {
                     const score = record.evaluation?.overallScore;
-                    if (!score) return '-';
+                    if (!score) return "-";
                     return (
-                      <Tag color={score >= 80 ? 'green' : score >= 60 ? 'orange' : 'red'}>
+                      <Tag
+                        color={
+                          score >= 80 ? "green" : score >= 60 ? "orange" : "red"
+                        }
+                      >
                         {score}/100
                       </Tag>
                     );
                   },
                 },
                 {
-                  title: 'Created',
-                  dataIndex: 'createdAt',
-                  key: 'createdAt',
-                  render: (date: string) => date ? new Date(date).toLocaleDateString() : '-',
+                  title: "Created",
+                  dataIndex: "createdAt",
+                  key: "createdAt",
+                  render: (date: string) =>
+                    date ? new Date(date).toLocaleDateString() : "-",
                 },
                 {
-                  title: 'Action',
-                  key: 'action',
+                  title: "Action",
+                  key: "action",
                   render: (record: any) => (
                     <Button
                       type="link"
                       size="small"
                       icon={<EyeOutlined />}
-                      onClick={() => navigate(`/tests/runs/${record._id || record.id}`)}
+                      onClick={() =>
+                        navigate(`/tests/runs/${record._id || record.id}`)
+                      }
                     >
                       View
                     </Button>
@@ -307,7 +374,7 @@ export const DashboardPage: React.FC = () => {
                 },
               ]}
               dataSource={recentTestRuns}
-              rowKey={(record) => record._id || record.id}
+              rowKey={(record) => record._id}
               pagination={false}
               size="small"
               loading={loading}
@@ -317,17 +384,23 @@ export const DashboardPage: React.FC = () => {
         <Col xs={24} lg={8}>
           <Card
             title={
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                }}
+              >
                 <span>Quick Actions</span>
               </div>
             }
           >
-            <Space direction="vertical" style={{ width: '100%' }} size="middle">
+            <Space direction="vertical" style={{ width: "100%" }} size="middle">
               <Button
                 type="primary"
                 block
                 icon={<PlusOutlined />}
-                onClick={() => navigate('/tests/new')}
+                onClick={() => navigate("/tests/new")}
                 size="large"
               >
                 Create New Test
@@ -335,7 +408,7 @@ export const DashboardPage: React.FC = () => {
               <Button
                 block
                 icon={<UploadOutlined />}
-                onClick={() => navigate('/imported-calls/upload')}
+                onClick={() => navigate("/imported-calls/upload")}
                 size="large"
               >
                 Upload Call Recording
@@ -343,7 +416,7 @@ export const DashboardPage: React.FC = () => {
               <Button
                 block
                 icon={<EyeOutlined />}
-                onClick={() => navigate('/imported-calls/analytics')}
+                onClick={() => navigate("/imported-calls/analytics")}
                 size="large"
               >
                 View Analytics

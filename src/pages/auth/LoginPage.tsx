@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
-import { Form, Input, Button, Typography, Alert, Space } from 'antd';
-import { UserOutlined, LockOutlined } from '@ant-design/icons';
-import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../../contexts/AuthContext';
-import { LoginRequest } from '../../types';
+import React, { useState } from "react";
+import { Form, Input, Button, Typography, Alert, Space } from "antd";
+import { UserOutlined, LockOutlined } from "@ant-design/icons";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../../contexts/AuthContext";
+import type { LoginRequest } from "../../types";
 
 const { Title, Text } = Typography;
 
@@ -19,23 +19,21 @@ export const LoginPage: React.FC = () => {
 
     try {
       await login(values);
-      navigate('/dashboard');
+      navigate("/dashboard");
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Login failed. Please try again.');
+      setError(
+        err.response?.data?.message || "Login failed. Please try again."
+      );
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="auth-layout">
-      <div className="auth-container">
-        <Title level={2} style={{ textAlign: 'center', marginBottom: 8 }}>
-          Welcome Back
-        </Title>
-        <Text type="secondary" style={{ display: 'block', textAlign: 'center', marginBottom: 32 }}>
-          Sign in to your Ajeer Pay account
-        </Text>
+    <>
+      <Title level={2} style={{ textAlign: "center", marginBottom: 8 }}>
+        Welcome Back
+      </Title>
 
       {error && (
         <Alert
@@ -56,31 +54,25 @@ export const LoginPage: React.FC = () => {
         <Form.Item
           name="email"
           rules={[
-            { required: true, message: 'Please input your email!' },
-            { type: 'email', message: 'Please enter a valid email!' }
+            { required: true, message: "Please input your email!" },
+            { type: "email", message: "Please enter a valid email!" },
           ]}
         >
-          <Input
-            prefix={<UserOutlined />}
-            placeholder="Email"
-          />
+          <Input prefix={<UserOutlined />} placeholder="Email" />
         </Form.Item>
 
         <Form.Item
           name="password"
-          rules={[{ required: true, message: 'Please input your password!' }]}
+          rules={[{ required: true, message: "Please input your password!" }]}
         >
-          <Input.Password
-            prefix={<LockOutlined />}
-            placeholder="Password"
-          />
+          <Input.Password prefix={<LockOutlined />} placeholder="Password" />
         </Form.Item>
 
         <Form.Item>
           <Button
             type="primary"
             htmlType="submit"
-            style={{ width: '100%' }}
+            style={{ width: "100%" }}
             loading={loading}
           >
             Sign In
@@ -88,17 +80,16 @@ export const LoginPage: React.FC = () => {
         </Form.Item>
       </Form>
 
-        <div style={{ textAlign: 'center' }}>
-          <Space split={<span>•</span>}>
-            <Link to="/register">
-              <Text>Create an account</Text>
-            </Link>
-            <Link to="/forgot-password">
-              <Text>Forgot password?</Text>
-            </Link>
-          </Space>
-        </div>
+      <div style={{ textAlign: "center" }}>
+        <Space split={<span>•</span>}>
+          <Link to="/register">
+            <Text>Create an account</Text>
+          </Link>
+          <Link to="/forgot-password">
+            <Text>Forgot password?</Text>
+          </Link>
+        </Space>
       </div>
-    </div>
+    </>
   );
 };

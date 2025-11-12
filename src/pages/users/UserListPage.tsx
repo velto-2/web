@@ -12,10 +12,8 @@ import {
   Modal,
   Form,
   Switch,
-  message,
 } from 'antd';
 import {
-  PlusOutlined,
   EditOutlined,
   DeleteOutlined,
   UserAddOutlined,
@@ -302,9 +300,15 @@ export const UserListPage: React.FC = () => {
               loading={isLoadingRoles}
               showSearch
               optionFilterProp="children"
-              filterOption={(input, option) =>
-                (option?.children as string)?.toLowerCase().includes(input.toLowerCase())
-              }
+              filterOption={(input, option) => {
+                const children = option?.children;
+                if (Array.isArray(children)) {
+                  return children.some((child: any) =>
+                    String(child).toLowerCase().includes(input.toLowerCase())
+                  );
+                }
+                return String(children || '').toLowerCase().includes(input.toLowerCase());
+              }}
             >
               {rolesData?.map((role) => (
                 <Option key={role.id} value={role.id}>

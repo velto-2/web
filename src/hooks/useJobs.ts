@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { message } from 'antd';
-import { 
-  jobsApi, 
+import { jobsApi } from '../services/api/jobs';
+import type { 
   JobQueryParams, 
   CreateJobRequest, 
   UpdateJobRequest 

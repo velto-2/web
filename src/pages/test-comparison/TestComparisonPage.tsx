@@ -19,7 +19,6 @@ import { useTests } from '../../hooks/useTests';
 import dayjs from 'dayjs';
 
 const { Title } = Typography;
-const { Option } = Select;
 
 export const TestComparisonPage: React.FC = () => {
   const [testRun1Id, setTestRun1Id] = useState<string | null>(null);
@@ -30,8 +29,9 @@ export const TestComparisonPage: React.FC = () => {
   const testRun1 = testRunsData?.find((r: any) => (r._id || r.id) === testRun1Id);
   const testRun2 = testRunsData?.find((r: any) => (r._id || r.id) === testRun2Id);
 
+  const testsArray = Array.isArray(testsData) ? testsData : [];
   const getTestName = (testConfigId: string) => {
-    const test = testsData?.data?.find((t: any) => (t._id || t.id) === testConfigId);
+    const test = testsArray?.find((t: any) => (t._id || t.id) === testConfigId);
     return test?.name || 'Unknown';
   };
 
@@ -154,8 +154,8 @@ export const TestComparisonPage: React.FC = () => {
         key: 'taskCompleted',
         metric: 'Task Completion (%)',
         run1Value: eval1.taskCompleted || 0,
-        run2Value: eval2.taskCompleted || 0,
-        difference: eval1.taskCompleted ? ((eval2.taskCompleted - eval1.taskCompleted) / eval1.taskCompleted) * 100 : 0,
+        run2Value: eval2?.taskCompleted || 0,
+        difference: eval1.taskCompleted && eval2?.taskCompleted ? ((eval2.taskCompleted - eval1.taskCompleted) / eval1.taskCompleted) * 100 : 0,
         run1Better: (eval1.taskCompleted || 0) > (eval2.taskCompleted || 0),
         run2Better: (eval2.taskCompleted || 0) > (eval1.taskCompleted || 0),
       },

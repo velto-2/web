@@ -6,7 +6,6 @@ import {
   Tag,
   Space,
   Button,
-  Spin,
   Alert,
   Table,
   Typography,
@@ -20,7 +19,6 @@ import {
   EditOutlined,
   DeleteOutlined,
   PlayCircleOutlined,
-  ReloadOutlined,
 } from "@ant-design/icons";
 import {
   useTest,
@@ -274,7 +272,7 @@ export const TestDetailsPage: React.FC = () => {
                         <Space>
                           <Text>{test.language.name}</Text>
                           <Text type="secondary">
-                            ({test.language.nativeName})
+                            ({test.language.code})
                           </Text>
                         </Space>
                       </Descriptions.Item>

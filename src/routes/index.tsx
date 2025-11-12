@@ -26,6 +26,7 @@ import { ImportedCallsListPage } from "../pages/imported-calls/ImportedCallsList
 import { UploadCallPage } from "../pages/imported-calls/UploadCallPage";
 import { CallDetailPage } from "../pages/imported-calls/CallDetailPage";
 import { AnalyticsPage as ImportedCallsAnalyticsPage } from "../pages/imported-calls/AnalyticsPage";
+import { AgentKnowledgeBasePage } from "../pages/imported-calls/AgentKnowledgeBasePage";
 
 // Analytics Pages
 import { AnalyticsPage } from "../pages/analytics/AnalyticsPage";
@@ -36,6 +37,10 @@ import { CreateSchedulePage } from "../pages/test-schedules/CreateSchedulePage";
 
 // Test Comparison Pages
 import { TestComparisonPage } from "../pages/test-comparison/TestComparisonPage";
+
+// Agents Pages
+import { AgentsListPage } from "../pages/agents/AgentsListPage";
+import { CreateAgentPage } from "../pages/agents/CreateAgentPage";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -154,10 +159,16 @@ export const AppRoutes: React.FC = () => {
           <Route index element={<ImportedCallsListPage />} />
           <Route path="upload" element={<UploadCallPage />} />
           <Route path="analytics" element={<ImportedCallsAnalyticsPage />} />
+          <Route path="knowledge-base" element={<AgentKnowledgeBasePage />} />
           <Route path=":id" element={<CallDetailPage />} />
         </Route>
 
         {/* User Management */}
+        {/* Agents */}
+        <Route path="agents">
+          <Route index element={<AgentsListPage />} />
+          <Route path="new" element={<CreateAgentPage />} />
+        </Route>
         <Route path="users" element={<UserListPage />} />
       </Route>
 

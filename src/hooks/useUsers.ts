@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { usersApi, CreateUserRequest, UpdateUserRequest, InviteUserRequest } from '../services/api/users';
+import { usersApi } from '../services/api/users';
+import type { CreateUserRequest, UpdateUserRequest, InviteUserRequest } from '../services/api/users';
 import { message } from 'antd';
 
 export const useUsers = (params?: {

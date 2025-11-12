@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   Card,
   DatePicker,
@@ -11,25 +11,36 @@ import {
   Button,
   Dropdown,
   Menu,
-} from 'antd';
-import { DownloadOutlined, FilePdfOutlined, FileExcelOutlined } from '@ant-design/icons';
-import { useQuery } from '@tanstack/react-query';
-import { Line, Area, Pie, Column } from '@ant-design/charts';
-import { analyticsApi, AnalyticsResponse } from '../../services/api/analytics';
-import { useTests } from '../../hooks/useTests';
-import dayjs from 'dayjs';
-import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
+} from "antd";
+import {
+  DownloadOutlined,
+  FilePdfOutlined,
+  FileExcelOutlined,
+} from "@ant-design/icons";
+import { useQuery } from "@tanstack/react-query";
+import { Line, Area, Pie, Column } from "@ant-design/charts";
+import { analyticsApi } from "../../services/api/analytics";
+import type { AnalyticsResponse } from "../../services/api/analytics";
+import { useTests } from "../../hooks/useTests";
+import dayjs from "dayjs";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
 const { RangePicker } = DatePicker;
 
 export const AnalyticsPage: React.FC = () => {
-  const [dateRange, setDateRange] = useState<[dayjs.Dayjs, dayjs.Dayjs] | null>(null);
+  const [dateRange, setDateRange] = useState<[dayjs.Dayjs, dayjs.Dayjs] | null>(
+    null
+  );
   const [testConfigId, setTestConfigId] = useState<string | undefined>();
   const { data: testsData } = useTests();
 
-  const { data: analytics, isLoading, error } = useQuery({
-    queryKey: ['testAnalytics', dateRange, testConfigId],
+  const {
+    data: analytics,
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: ["testAnalytics", dateRange, testConfigId],
     queryFn: () =>
       analyticsApi.getTestAnalytics({
         dateFrom: dateRange?.[0]?.toISOString(),
@@ -42,20 +53,24 @@ export const AnalyticsPage: React.FC = () => {
     if (!analytics?.summary) return;
 
     const csv = [
-      ['Metric', 'Value'],
-      ['Total Runs', analytics.summary.totalRuns || 0],
-      ['Completed Runs', analytics.summary.completedRuns || 0],
-      ['Failed Runs', analytics.summary.failedRuns || 0],
-      ['Success Rate', `${analytics.summary.successRate || 0}%`],
-      ['Average Score', analytics.summary.averageScore || 0],
-      ['Average Latency', `${analytics.summary.averageLatency || 0}ms`],
-    ].map((row) => row.join(',')).join('\n');
+      ["Metric", "Value"],
+      ["Total Runs", analytics.summary.totalRuns || 0],
+      ["Completed Runs", analytics.summary.completedRuns || 0],
+      ["Failed Runs", analytics.summary.failedRuns || 0],
+      ["Success Rate", `${analytics.summary.successRate || 0}%`],
+      ["Average Score", analytics.summary.averageScore || 0],
+      ["Average Latency", `${analytics.summary.averageLatency || 0}ms`],
+    ]
+      .map((row) => row.join(","))
+      .join("\n");
 
-    const blob = new Blob([csv], { type: 'text/csv' });
+    const blob = new Blob([csv], { type: "text/csv" });
     const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
+    const a = document.createElement("a");
     a.href = url;
-    a.download = `velto-analytics-${new Date().toISOString().split('T')[0]}.csv`;
+    a.download = `velto-analytics-${
+      new Date().toISOString().split("T")[0]
+    }.csv`;
     a.click();
     window.URL.revokeObjectURL(url);
   };
@@ -70,43 +85,51 @@ export const AnalyticsPage: React.FC = () => {
 
     // Title
     doc.setFontSize(18);
-    doc.text('Velto Test Analytics Report', margin, yPos);
+    doc.text("Velto Test Analytics Report", margin, yPos);
     yPos += 10;
 
     // Date range
     doc.setFontSize(10);
     const dateRangeText = dateRange
-      ? `${dateRange[0].format('YYYY-MM-DD')} to ${dateRange[1].format('YYYY-MM-DD')}`
-      : 'All Time';
+      ? `${dateRange[0].format("YYYY-MM-DD")} to ${dateRange[1].format(
+          "YYYY-MM-DD"
+        )}`
+      : "All Time";
     doc.text(`Period: ${dateRangeText}`, margin, yPos);
     yPos += 5;
-    if (selectedTestConfigId) {
-      const testName = testsData?.data?.find((t: any) => (t._id || t.id) === selectedTestConfigId)?.name || 'Selected Test';
+    if (testConfigId) {
+      const testName =
+        testsData?.find((t: any) => (t._id || t.id) === testConfigId)?.name ||
+        "Selected Test";
       doc.text(`Test: ${testName}`, margin, yPos);
       yPos += 5;
     }
-    doc.text(`Generated: ${dayjs().format('YYYY-MM-DD HH:mm:ss')}`, margin, yPos);
+    doc.text(
+      `Generated: ${dayjs().format("YYYY-MM-DD HH:mm:ss")}`,
+      margin,
+      yPos
+    );
     yPos += 15;
 
     // Summary Statistics
     doc.setFontSize(14);
-    doc.text('Summary Statistics', margin, yPos);
+    doc.text("Summary Statistics", margin, yPos);
     yPos += 8;
 
     const summaryData = [
-      ['Total Runs', analytics.summary.totalRuns.toString()],
-      ['Completed Runs', analytics.summary.completedRuns.toString()],
-      ['Failed Runs', analytics.summary.failedRuns.toString()],
-      ['Success Rate', `${analytics.summary.successRate.toFixed(2)}%`],
-      ['Average Score', `${analytics.summary.averageScore.toFixed(2)}/100`],
-      ['Average Latency', `${analytics.summary.averageLatency.toFixed(0)}ms`],
+      ["Total Runs", analytics.summary.totalRuns.toString()],
+      ["Completed Runs", analytics.summary.completedRuns.toString()],
+      ["Failed Runs", analytics.summary.failedRuns.toString()],
+      ["Success Rate", `${analytics.summary.successRate.toFixed(2)}%`],
+      ["Average Score", `${analytics.summary.averageScore.toFixed(2)}/100`],
+      ["Average Latency", `${analytics.summary.averageLatency.toFixed(0)}ms`],
     ];
 
     autoTable(doc, {
       startY: yPos,
-      head: [['Metric', 'Value']],
+      head: [["Metric", "Value"]],
       body: summaryData,
-      theme: 'striped',
+      theme: "striped",
       headStyles: { fillColor: [24, 144, 255] },
     });
 
@@ -119,19 +142,21 @@ export const AnalyticsPage: React.FC = () => {
     }
 
     doc.setFontSize(14);
-    doc.text('Status Distribution', margin, yPos);
+    doc.text("Status Distribution", margin, yPos);
     yPos += 8;
 
-    const statusData = Object.entries(analytics.statusDistribution).map(([status, count]) => [
-      status.charAt(0).toUpperCase() + status.slice(1),
-      count.toString(),
-    ]);
+    const statusData = Object.entries(analytics.statusDistribution).map(
+      ([status, count]) => [
+        status.charAt(0).toUpperCase() + status.slice(1),
+        count.toString(),
+      ]
+    );
 
     autoTable(doc, {
       startY: yPos,
-      head: [['Status', 'Count']],
+      head: [["Status", "Count"]],
       body: statusData,
-      theme: 'striped',
+      theme: "striped",
       headStyles: { fillColor: [24, 144, 255] },
     });
 
@@ -144,31 +169,30 @@ export const AnalyticsPage: React.FC = () => {
     }
 
     doc.setFontSize(14);
-    doc.text('Grade Distribution', margin, yPos);
+    doc.text("Grade Distribution", margin, yPos);
     yPos += 8;
 
-    const gradeData = Object.entries(analytics.gradeDistribution).map(([grade, count]) => [
-      `Grade ${grade}`,
-      count.toString(),
-    ]);
+    const gradeData = Object.entries(analytics.gradeDistribution).map(
+      ([grade, count]) => [`Grade ${grade}`, count.toString()]
+    );
 
     autoTable(doc, {
       startY: yPos,
-      head: [['Grade', 'Count']],
+      head: [["Grade", "Count"]],
       body: gradeData,
-      theme: 'striped',
+      theme: "striped",
       headStyles: { fillColor: [24, 144, 255] },
     });
 
     // Save PDF
-    doc.save(`velto-analytics-${dayjs().format('YYYY-MM-DD')}.pdf`);
+    doc.save(`velto-analytics-${dayjs().format("YYYY-MM-DD")}.pdf`);
   };
 
   if (error) {
     return (
-      <div style={{ padding: '24px' }}>
+      <div style={{ padding: "24px" }}>
         <Card>
-          <div style={{ textAlign: 'center', padding: '40px' }}>
+          <div style={{ textAlign: "center", padding: "40px" }}>
             Error loading analytics. Please try again.
           </div>
         </Card>
@@ -191,7 +215,7 @@ export const AnalyticsPage: React.FC = () => {
     : [];
 
   return (
-    <div style={{ padding: '24px' }}>
+    <div style={{ padding: "24px" }}>
       <Card
         title="Test Analytics"
         extra={
@@ -207,8 +231,11 @@ export const AnalyticsPage: React.FC = () => {
               onChange={setTestConfigId}
               value={testConfigId}
             >
-              {testsData?.data?.map((test: any) => (
-                <Select.Option key={test._id || test.id} value={test._id || test.id}>
+              {(Array.isArray(testsData) ? testsData : [])?.map((test: any) => (
+                <Select.Option
+                  key={test._id || test.id}
+                  value={test._id || test.id}
+                >
                   {test.name}
                 </Select.Option>
               ))}
@@ -217,29 +244,27 @@ export const AnalyticsPage: React.FC = () => {
               menu={{
                 items: [
                   {
-                    key: 'pdf',
-                    label: 'Export as PDF',
+                    key: "pdf",
+                    label: "Export as PDF",
                     icon: <FilePdfOutlined />,
                     onClick: exportToPDF,
                   },
                   {
-                    key: 'csv',
-                    label: 'Export as CSV',
+                    key: "csv",
+                    label: "Export as CSV",
                     icon: <FileExcelOutlined />,
                     onClick: exportToCSV,
                   },
                 ],
               }}
             >
-              <Button icon={<DownloadOutlined />}>
-                Export
-              </Button>
+              <Button icon={<DownloadOutlined />}>Export</Button>
             </Dropdown>
           </Space>
         }
       >
         {isLoading ? (
-          <div style={{ textAlign: 'center', padding: '40px' }}>
+          <div style={{ textAlign: "center", padding: "40px" }}>
             <Spin size="large" />
           </div>
         ) : analytics?.summary ? (
@@ -260,7 +285,12 @@ export const AnalyticsPage: React.FC = () => {
                     value={analytics.summary?.successRate || 0}
                     precision={1}
                     suffix="%"
-                    valueStyle={{ color: (analytics.summary?.successRate || 0) >= 80 ? '#3f8600' : '#ff4d4f' }}
+                    valueStyle={{
+                      color:
+                        (analytics.summary?.successRate || 0) >= 80
+                          ? "#3f8600"
+                          : "#ff4d4f",
+                    }}
                   />
                 </Card>
               </Col>
@@ -296,7 +326,7 @@ export const AnalyticsPage: React.FC = () => {
                     point={{ size: 5 }}
                     label={{
                       style: {
-                        fill: '#aaa',
+                        fill: "#aaa",
                       },
                     }}
                   />
@@ -310,8 +340,8 @@ export const AnalyticsPage: React.FC = () => {
                     colorField="status"
                     radius={0.8}
                     label={{
-                      type: 'outer',
-                      content: '{name}: {value}',
+                      type: "outer",
+                      content: "{name}: {value}",
                     }}
                   />
                 </Card>
@@ -325,8 +355,9 @@ export const AnalyticsPage: React.FC = () => {
                     data={trendData}
                     xField="date"
                     yField="successRate"
-                    smooth
-                    areaStyle={{ fill: 'l(270) 0:#ffffff 0.5:#7ec2f3 1:#1890ff' }}
+                    areaStyle={{
+                      fill: "l(270) 0:#ffffff 0.5:#7ec2f3 1:#1890ff",
+                    }}
                   />
                 </Card>
               </Col>
@@ -336,15 +367,15 @@ export const AnalyticsPage: React.FC = () => {
                     data={gradeData}
                     xField="grade"
                     yField="count"
-                    color={({ grade }) => {
+                    color={({ grade }: { grade: string }) => {
                       const colors: Record<string, string> = {
-                        A: '#3f8600',
-                        B: '#1890ff',
-                        C: '#faad14',
-                        D: '#ff4d4f',
-                        F: '#cf1322',
+                        A: "#3f8600",
+                        B: "#1890ff",
+                        C: "#faad14",
+                        D: "#ff4d4f",
+                        F: "#cf1322",
                       };
-                      return colors[grade] || '#888';
+                      return colors[grade] || "#888";
                     }}
                   />
                 </Card>
@@ -362,7 +393,7 @@ export const AnalyticsPage: React.FC = () => {
                     point={{ size: 5 }}
                     label={{
                       style: {
-                        fill: '#aaa',
+                        fill: "#aaa",
                       },
                     }}
                   />
@@ -371,7 +402,7 @@ export const AnalyticsPage: React.FC = () => {
             </Row>
           </>
         ) : (
-          <div style={{ textAlign: 'center', padding: '40px' }}>
+          <div style={{ textAlign: "center", padding: "40px" }}>
             No analytics data available
           </div>
         )}
@@ -379,4 +410,3 @@ export const AnalyticsPage: React.FC = () => {
     </div>
   );
 };
-

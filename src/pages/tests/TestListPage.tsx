@@ -13,7 +13,7 @@ import {
   useDeleteTest,
   useCreateTestRun,
 } from "../../hooks/useTests";
-import { TestConfig } from "../../types";
+import type { TestConfig } from "../../types";
 import dayjs from "dayjs";
 
 export const TestListPage: React.FC = () => {
